@@ -1,21 +1,38 @@
-//
-//  ContentView.swift
-//  Transeat Watch App
-//
-//  Created by Jonathan Basuki on 01/07/26.
-//
-
 import SwiftUI
 
 struct ContentView: View {
+    @StateObject private var flow = AppFlowViewModel()
+     
+    @ViewBuilder
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        switch flow.currentScreen {
+        case .welcome:
+            WelcomeView()
+ 
+        case .locating:
+            LocatingView()
+ 
+        case .confirmSeat:
+            ConfirmSeatView(
+                onConfirm: { flow.seatCheckConfirmed(hasSeat: true) },
+                onNotYet: { flow.seatCheckConfirmed(hasSeat: false) }
+            )
+ 
+        case .changeTrain:
+            ChangeTrainView(
+                onConfirm: { flow.changeTrainAnswered(isChanging: true) },
+                onLastTrain: { flow.changeTrainAnswered(isChanging: false) }
+            )
+ 
+        case .countdownSeated:
+            CountdownSeatedView(countdown: flow.countdown)
+ 
+        case .countdownNotSeated:
+            CountdownNotSeatedView(countdown: flow.countdown)
+ 
+        case .enjoyTrip:
+            EnjoyTripView()
         }
-        .padding()
     }
 }
 
