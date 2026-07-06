@@ -2,20 +2,16 @@
 //  ContentView.swift
 //  Transeat
 //
-//  Created by Jonathan Basuki on 01/07/26.
+//  Created by Gabriella Erlinda on 06/07/26.
 //
 
 import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        NavigationStack {
+            OnboardingView()
         }
-        .padding()
     }
 }
 
