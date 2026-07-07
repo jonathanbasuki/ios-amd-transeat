@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-// 1. Define the possible view states for your flow
 enum HomeState {
     case home
     case goToSeat
@@ -84,7 +83,7 @@ extension HomeView {
         case .home:
             VStack(spacing: 16) {
                 // Replace with your cherry asset if available
-                Image("mascot-locating")
+                Image("mascot-detecting")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 200, height: 200)
@@ -102,11 +101,10 @@ extension HomeView {
             
         case .goToSeat:
             VStack(spacing: 16) {
-                Image("mascot-locating")
+                Image("mascot-detected")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 200, height: 200)
-                    .foregroundColor(Color.hexPalette.cherry500)
                 
                 Text("Menujulah ke kursi\nprioritas terdekat")
                     .font(.system(size: 24, weight: .bold))
@@ -120,17 +118,18 @@ extension HomeView {
             
         case .endTrip:
             VStack(spacing: 16) {
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 80))
-                    .foregroundColor(Color.hexPalette.cherry500)
-                
+                Image("mascot-hai")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 200, height: 200)
+
                 Text("Nikmati perjalanan\nMama!")
                     .font(.system(size: 24, weight: .bold))
                     .multilineTextAlignment(.center)
                     .foregroundColor(Color.hexPalette.cherry500)
                 
                 Text("Pakailah kami lagi pada perjalanan Anda berikutnya.")
-                    .font(.system(size: 12))
+                    .font(.system(size: 16))
                     .foregroundColor(.gray)
             }
             
@@ -146,10 +145,10 @@ extension HomeView {
             switch currentState {
             case .beaconDetected:
                 cardContainer {
-                    Image("mascot-located")
+                    Image("mascot-askseated")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 100, height: 100)
+                        .frame(width: 150, height: 150)
                     Text("Sudah dapat kursi?")
                         .font(.system(size: 20, weight: .bold))
                         .foregroundColor(Color.hexPalette.cherry500)
@@ -169,10 +168,11 @@ extension HomeView {
                 
             case .changeTrain:
                 cardContainer {
-                    Image("mascot-located")
+                    Image("train")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 100, height: 100)
+                        .frame(width: 150, height: 150)
+                    
                     Text("Mama akan ganti kereta?")
                         .font(.system(size: 20, weight: .bold))
                         .foregroundColor(Color.hexPalette.cherry500)
@@ -191,7 +191,7 @@ extension HomeView {
                     Image("mascot-seated")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 100, height: 100)
+                        .frame(width: 150, height: 150)
                     Text("Kursi Terkonfirmasi!")
                         .font(.system(size: 20, weight: .bold))
                         .foregroundColor(Color.hexPalette.cherry500)
@@ -208,7 +208,7 @@ extension HomeView {
                     Image("mascot-notseated")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 100, height: 100)
+                        .frame(width: 150, height: 150)
                     Text("Belum dapat tempat duduk?")
                         .font(.system(size: 20, weight: .bold))
                         .foregroundColor(Color.hexPalette.cherry500)
