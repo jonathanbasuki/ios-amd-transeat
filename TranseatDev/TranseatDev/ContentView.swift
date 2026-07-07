@@ -8,14 +8,15 @@
 import SwiftUI
 
 struct ContentView: View {
+    @StateObject private var viewModel = AppViewModel()
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        switch viewModel.screenState {
+        case .camera:
+            CameraDetectionView(viewModel: viewModel)
+        case .signalReceived:
+            SignalReceivedView(viewModel: viewModel)
         }
-        .padding()
     }
 }
 
