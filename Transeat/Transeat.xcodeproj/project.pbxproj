@@ -379,11 +379,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-<<<<<<< Updated upstream
-				DEVELOPMENT_TEAM = KA9ACM3BX6;
-=======
 				DEVELOPMENT_TEAM = 953242MS8N;
->>>>>>> Stashed changes
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Transeat;
@@ -416,11 +412,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-<<<<<<< Updated upstream
-				DEVELOPMENT_TEAM = KA9ACM3BX6;
-=======
 				DEVELOPMENT_TEAM = 953242MS8N;
->>>>>>> Stashed changes
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Transeat;
@@ -454,19 +446,11 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-<<<<<<< Updated upstream
-				DEVELOPMENT_TEAM = KA9ACM3BX6;
-				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = Transeat;
-				INFOPLIST_KEY_NSCameraUsageDescription = "";
-=======
 				DEVELOPMENT_TEAM = 953242MS8N;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Transeat;
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Aplikasi ini membutuhkan Bluetooth untuk mendeteksi iPhone Anda.";
->>>>>>> Stashed changes
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -498,19 +482,11 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-<<<<<<< Updated upstream
-				DEVELOPMENT_TEAM = KA9ACM3BX6;
-				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = Transeat;
-				INFOPLIST_KEY_NSCameraUsageDescription = "";
-=======
 				DEVELOPMENT_TEAM = 953242MS8N;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Transeat;
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Aplikasi ini membutuhkan Bluetooth untuk mendeteksi iPhone Anda.";
->>>>>>> Stashed changes
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
