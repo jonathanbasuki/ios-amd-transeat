@@ -5,14 +5,23 @@
 //  Created by Gabriella Erlinda on 03/07/26.
 //
 
-
 import SwiftUI
+import PhotosUI
 
 struct UploadCard: View {
     let title: String
     @Binding var isUploaded: Bool
+    
+    @Binding var uiImageForOCR: UIImage?
 
     @State private var showActionSheet = false
+    @State private var showPhotosPicker = false
+    @State private var selectedPhotoItem: PhotosPickerItem? = nil
+    @State private var showCamera = false
+    @State private var showFileImporter = false
+    
+    @State private var uploadedImage: Image? = nil
+    @State private var uploadedFileURL: URL? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -32,10 +41,48 @@ struct UploadCard: View {
             .buttonStyle(.plain)
         }
         .confirmationDialog("Select file/take a picture to upload", isPresented: $showActionSheet, titleVisibility: .hidden) {
-            Button("Photo Library") { simulateUpload() }
-            Button("Take Photo") { simulateUpload() }
-            Button("Choose File") { simulateUpload() }
+            Button("Photo Library") { showPhotosPicker = true }
+            Button("Take Photo") { showCamera = true }
+            Button("Choose File") { showFileImporter = true }
             Button("Cancel", role: .cancel) {}
+        }
+        .photosPicker(isPresented: $showPhotosPicker, selection: $selectedPhotoItem, matching: .images)
+        .onChange(of: selectedPhotoItem) { _, newItem in
+            if let newItem {
+                Task {
+                    if let data = try? await newItem.loadTransferable(type: Data.self),
+                       let uiImage = UIImage(data: data) {
+                        await MainActor.run {
+                            self.uiImageForOCR = uiImage
+                            self.uploadedImage = Image(uiImage: uiImage)
+                            simulateUpload()
+                        }
+                    }
+                }
+            }
+        }
+        .sheet(isPresented: $showCamera) {
+            CameraPicker(isPresented: $showCamera) { uiImage in
+                self.uiImageForOCR = uiImage
+                self.uploadedImage = Image(uiImage: uiImage)
+                simulateUpload()
+            }
+            .ignoresSafeArea()
+        }
+        .fileImporter(
+            isPresented: $showFileImporter,
+            allowedContentTypes: [.png, .jpeg, .pdf],
+            allowsMultipleSelection: false
+        ) { result in
+            switch result {
+            case .success(let urls):
+                if let firstURL = urls.first {
+                    self.uploadedFileURL = firstURL
+                    simulateUpload()
+                }
+            case .failure(let error):
+                print("Error memilih file: \(error.localizedDescription)")
+            }
         }
     }
 
@@ -58,7 +105,7 @@ struct UploadCard: View {
 
             Text("Supported format: PNG, JPG, JPEG, PDF")
                 .font(.system(size: 13))
-                .foregroundColor(.hexPalette.darkgray)
+                .foregroundColor(.gray)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 32)
@@ -66,25 +113,38 @@ struct UploadCard: View {
         .background(
             RoundedRectangle(cornerRadius: 12)
                 .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [6]))
-                .foregroundColor(Color.hexPalette.gray)
+                .foregroundColor(.gray)
         )
     }
 
-    /// Placeholder "uploaded" preview — swap the fill for a real Image/AsyncImage once
-    /// actual picker + storage is wired up.
     private var uploadedContent: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 12)
                 .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [6]))
-                .foregroundColor(Color.hexPalette.gray)
+                .foregroundColor(.gray)
                 .background(
                     RoundedRectangle(cornerRadius: 12)
                         .fill(Color.black)
                 )
 
-            Image(systemName: "photo.fill")
-                .font(.system(size: 36))
-                .foregroundColor(.white.opacity(0.55))
+            if let uploadedImage {
+                uploadedImage
+                    .resizable()
+                    .scaledToFill()
+            } else if uploadedFileURL != nil {
+                VStack(spacing: 8) {
+                    Image(systemName: "doc.fill")
+                        .font(.system(size: 36))
+                        .foregroundColor(.white)
+                    Text(uploadedFileURL?.lastPathComponent ?? "File Berhasil Diupload")
+                        .font(.caption)
+                        .foregroundColor(.white)
+                }
+            } else {
+                Image(systemName: "photo.fill")
+                    .font(.system(size: 36))
+                    .foregroundColor(.white.opacity(0.55))
+            }
         }
         .frame(height: 180)
         .clipShape(RoundedRectangle(cornerRadius: 12))

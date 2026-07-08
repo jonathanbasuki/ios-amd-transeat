@@ -10,11 +10,17 @@ import SwiftUI
 
 struct ValidateDataView: View {
     // the extracted USG / medication proof documents.
-    @State private var name: String = "Kartini"
-    @State private var age: String = "36"
-    @State private var edd: String = "12/04/2027"
+    @State private var name: String
+    @State private var age: String
+    @State private var hpl: String
 
     @State private var goToHome = false
+    
+    init(name: String, age: String, hpl: String) {
+            _name = State(initialValue: name)
+            _age = State(initialValue: age)
+            _hpl = State(initialValue: hpl)
+        }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -28,7 +34,7 @@ struct ValidateDataView: View {
                     labeledField(title: "Age", text: $age, keyboardType: .numberPad)
 
                     VStack(alignment: .leading, spacing: 8) {
-                        labeledField(title: "Expected Due Date (EDD)", text: $edd)
+                        labeledField(title: "Expected Due Date (EDD)", text: $hpl)
                         Text("This due date will determine the expiration date of the app")
                             .font(.system(size: 13))
                             .foregroundColor(Color.hexPalette.darkgray)
@@ -71,8 +77,8 @@ struct ValidateDataView: View {
     }
 }
 
-#Preview {
-    NavigationStack {
-        ValidateDataView()
-    }
-}
+//#Preview {
+//    NavigationStack {
+//        ValidateDataView(name: self.name, age: self.age, hpl: self.edd)
+//    }
+//}
