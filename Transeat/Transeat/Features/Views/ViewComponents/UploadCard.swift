@@ -98,12 +98,12 @@ struct UploadCard: View {
                 .font(.system(size: 26, weight: .medium))
                 .foregroundColor(.black)
 
-            Text("Select file/take a picture to upload")
+            Text("Pilih file atau ambil foto untuk diunggah.")
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(.black)
                 .multilineTextAlignment(.center)
 
-            Text("Supported format: PNG, JPG, JPEG, PDF")
+            Text("Format yang didukung: PNG, JPG, JPEG, PDF")
                 .font(.system(size: 13))
                 .foregroundColor(.gray)
         }
