@@ -38,6 +38,7 @@ final class AppFlowViewModel: ObservableObject {
     ///   caused by an incoming update from the iPhone, so we don't just
     ///   echo it straight back and cause a feedback loop.
     func enter(_ screen: AppScreen, broadcast: Bool = true) {
+        print("[AppFlowViewModel] enter(\(screen), broadcast: \(broadcast)) — was \(currentScreen)")
         timerCancellable?.cancel()
         currentScreen = screen
         if broadcast {
@@ -67,13 +68,15 @@ final class AppFlowViewModel: ObservableObject {
 
     // MARK: - Button-driven transitions
 
-    /// "Trigger Detected!" screen
+    /// "Trigger Detected!" screen — Yes / Not Yet
     func seatCheckConfirmed(hasSeat: Bool) {
+        print("[AppFlowViewModel] user tapped '\(hasSeat ? "Yes" : "Not Yet")' on seatCheck")
         enter(hasSeat ? .changeTrain : .countdownNotSeated)
     }
 
-    /// "Are you going to change train?" screen
+    /// "Are you going to change train?" screen — Yes / Last Train
     func changeTrainAnswered(isChanging: Bool) {
+        print("[AppFlowViewModel] user tapped '\(isChanging ? "Yes, changing train" : "Last Train")' on changeTrain")
         enter(isChanging ? .countdownSeated : .enjoyTrip)
     }
 
@@ -96,6 +99,7 @@ final class AppFlowViewModel: ObservableObject {
     // MARK: - WatchConnectivity sync
 
     private func broadcastState() {
+        print("[AppFlowViewModel] broadcasting to iPhone: \(currentScreen)")
         WatchConnectivityManager.shared.syncContext([
             "screen": String(describing: currentScreen),
             "remainingSeconds": countdown.remainingSeconds
@@ -111,9 +115,19 @@ final class AppFlowViewModel: ObservableObject {
             .sink { [weak self] _ in
                 guard let self else { return }
                 let context = WatchConnectivityManager.shared.lastReceivedContext
-                guard let raw = context["screen"] as? String,
-                      let incoming = AppScreen(rawDescription: raw) else { return }
-                guard incoming != self.currentScreen else { return }
+                print("[AppFlowViewModel] received update from iPhone, raw context: \(context)")
+                guard let raw = context["screen"] as? String else {
+                    print("[AppFlowViewModel] context had no 'screen' key — ignoring")
+                    return
+                }
+                guard let incoming = AppScreen(rawDescription: raw) else {
+                    print("[AppFlowViewModel] '\(raw)' did not match any AppScreen case — ignoring")
+                    return
+                }
+                guard incoming != self.currentScreen else {
+                    print("[AppFlowViewModel] incoming '\(raw)' same as current screen — no-op")
+                    return
+                }
                 self.enter(incoming, broadcast: false)
             }
     }

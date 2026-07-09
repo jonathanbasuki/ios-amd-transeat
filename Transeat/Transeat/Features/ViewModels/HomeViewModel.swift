@@ -15,19 +15,12 @@ import Combine
 final class HomeViewModel: ObservableObject {
 
     @Published var currentState: HomeState = .home
-
-    /// Whether the user has manually dismissed the modal for the
-    /// *current* state. Reset back to false every time currentState
-    /// changes, so a new modal (e.g. the next reminder) still shows up.
     @Published var isModalDismissed = false
 
-    /// Drag offset used for the swipe-down-to-dismiss gesture on the card.
     @Published var dragOffset: CGFloat = 0
 
     let beaconTransmitter = BeaconTransmitterManager()
 
-    /// Guards against echoing a Watch-originated update straight back to
-    /// the Watch (feedback loop prevention).
     private var isApplyingRemoteState = false
     private var connectivityCancellable: AnyCancellable?
 
@@ -93,13 +86,16 @@ final class HomeViewModel: ObservableObject {
     }
 
     // MARK: - Button-driven transitions
-
     func confirmSeated() {
+        print("[HomeViewModel] user tapped 'Sudah' — stopping beacon advertising")
+        beaconTransmitter.stopAdvertising()
         currentState = .changeTrain
     }
-
-    /// Handles loop for "Belum" selection
+    
     func triggerUnconfirmDelayFlow() {
+        print("[HomeViewModel] user tapped 'Belum' — stopping beacon advertising")
+        beaconTransmitter.stopAdvertising()
+
         withAnimation { currentState = .seatUnconfirmDelay }
 
         // After 15 seconds, route back to Beacon Detected
@@ -141,9 +137,9 @@ final class HomeViewModel: ObservableObject {
 
     private func handleBeaconLifecycle(for state: HomeState) {
         switch state {
-        case .home:
+        case .home, .goToSeat, .beaconDetected:
             guard !beaconTransmitter.isAdvertising else { return }
-            print("[HomeViewModel] state -> .home — auto-starting beacon advertising")
+            print("[HomeViewModel] state -> \(state) — auto-starting beacon advertising")
             beaconTransmitter.startAdvertising()
         default:
             guard beaconTransmitter.isAdvertising else { return }
@@ -153,11 +149,6 @@ final class HomeViewModel: ObservableObject {
     }
 
     // MARK: - Watch <-> iPhone sync
-
-    /// Maps this screen's local `HomeState` to the shared wire-format name
-    /// used by both platforms over WatchConnectivity (mirrors the Watch
-    /// app's `AppScreen` enum case names). `.home` and `.goToSeat` both
-    /// mean "scanning for the beacon", so both map to "locating".
     private var wireScreenName: String {
         switch currentState {
         case .home, .goToSeat: return "locating"
@@ -169,10 +160,6 @@ final class HomeViewModel: ObservableObject {
         }
     }
 
-    /// Reverse mapping for state that *arrives* from the Watch. "welcome"
-    /// and "locating" are intentionally not mapped back — the Watch has no
-    /// buttons on those screens, so it never originates a transition away
-    /// from them; only the iPhone drives entry into `.home`/`.goToSeat`.
     private static func homeState(fromWireScreenName name: String) -> HomeState? {
         switch name {
         case "seatCheck": return .beaconDetected
@@ -198,14 +185,34 @@ final class HomeViewModel: ObservableObject {
             .sink { [weak self] _ in
                 guard let self else { return }
                 let context = WatchConnectivityManager.shared.lastReceivedContext
-                guard let raw = context["screen"] as? String,
-                      let mapped = Self.homeState(fromWireScreenName: raw),
-                      mapped != self.currentState else { return }
+                guard let raw = context["screen"] as? String else { return }
 
-                print("[HomeViewModel] applying incoming state from Watch: \(raw)")
                 self.isApplyingRemoteState = true
-                withAnimation { self.currentState = mapped }
-                self.isApplyingRemoteState = false
+                defer { self.isApplyingRemoteState = false }
+                
+                switch (raw, self.currentState) {
+                case ("changeTrain", .beaconDetected):
+                    print("[HomeViewModel] 'Sudah' confirmed from Watch")
+                    self.confirmSeated()
+
+                case ("haventSeatedTimer", .beaconDetected):
+                    print("[HomeViewModel] 'Belum' confirmed from Watch")
+                    self.triggerUnconfirmDelayFlow()
+
+                case ("seatConfirmedTimer", .changeTrain):
+                    print("[HomeViewModel] 'Iya, ganti kereta' confirmed from Watch")
+                    self.confirmChangingTrain()
+
+                case ("enjoyTrip", .changeTrain):
+                    print("[HomeViewModel] 'Tidak, kereta terakhir' confirmed from Watch")
+                    self.declineChangingTrain()
+
+                default:
+                    guard let mapped = Self.homeState(fromWireScreenName: raw),
+                          mapped != self.currentState else { return }
+                    print("[HomeViewModel] applying incoming state from Watch: \(raw)")
+                    withAnimation { self.currentState = mapped }
+                }
             }
     }
 }
