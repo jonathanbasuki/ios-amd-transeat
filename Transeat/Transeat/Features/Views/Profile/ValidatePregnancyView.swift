@@ -29,8 +29,8 @@ struct ValidatePregnancyView: View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 28) {
-                    UploadCard(title: "USG Proof", isUploaded: $isUSGUploaded, uiImageForOCR: $usgUIImageForOCR)
-                    UploadCard(title: "Newest Medication Proof", isUploaded: $isMedicationUploaded, uiImageForOCR: $medUIImageForOCR)
+                    UploadCard(title: "Bukti USG", isUploaded: $isUSGUploaded, uiImageForOCR: $usgUIImageForOCR)
+                    UploadCard(title: "Surat Dokter Terbaru", isUploaded: $isMedicationUploaded, uiImageForOCR: $medUIImageForOCR)
                 }
                 .padding(20)
             }

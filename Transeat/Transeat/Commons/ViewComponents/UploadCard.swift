@@ -40,11 +40,11 @@ struct UploadCard: View {
             }
             .buttonStyle(.plain)
         }
-        .confirmationDialog("Select file/take a picture to upload", isPresented: $showActionSheet, titleVisibility: .hidden) {
-            Button("Photo Library") { showPhotosPicker = true }
-            Button("Take Photo") { showCamera = true }
-            Button("Choose File") { showFileImporter = true }
-            Button("Cancel", role: .cancel) {}
+        .confirmationDialog("Pilih file atau ambil foto untuk diunggah.", isPresented: $showActionSheet, titleVisibility: .hidden) {
+            Button("Galeri Foto") { showPhotosPicker = true }
+            Button("Ambil Foto") { showCamera = true }
+            Button("Pilih File") { showFileImporter = true }
+            Button("Batal", role: .cancel) {}
         }
         .photosPicker(isPresented: $showPhotosPicker, selection: $selectedPhotoItem, matching: .images)
         .onChange(of: selectedPhotoItem) { _, newItem in
@@ -81,7 +81,7 @@ struct UploadCard: View {
                     simulateUpload()
                 }
             case .failure(let error):
-                print("Error memilih file: \(error.localizedDescription)")
+                print("Gagal memilih file: \(error.localizedDescription)")
             }
         }
     }
@@ -98,12 +98,12 @@ struct UploadCard: View {
                 .font(.system(size: 26, weight: .medium))
                 .foregroundColor(.black)
 
-            Text("Select file/take a picture to upload")
+            Text("Pilih file atau ambil foto untuk diunggah.")
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(.black)
                 .multilineTextAlignment(.center)
 
-            Text("Supported format: PNG, JPG, JPEG, PDF")
+            Text("Format yang didukung: PNG, JPG, JPEG, PDF")
                 .font(.system(size: 13))
                 .foregroundColor(.gray)
         }
@@ -136,7 +136,7 @@ struct UploadCard: View {
                     Image(systemName: "doc.fill")
                         .font(.system(size: 36))
                         .foregroundColor(.white)
-                    Text(uploadedFileURL?.lastPathComponent ?? "File Berhasil Diupload")
+                    Text(uploadedFileURL?.lastPathComponent ?? "File Berhasil Diunggah")
                         .font(.caption)
                         .foregroundColor(.white)
                 }

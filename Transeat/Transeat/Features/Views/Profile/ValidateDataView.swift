@@ -1,15 +1,7 @@
-//
-//  ValidateDataView.swift
-//  transeatluv
-//
-//  Created by Gabriella Erlinda on 06/07/26.
-//
-
-
 import SwiftUI
+import SwiftData
 
 struct ValidateDataView: View {
-    // the extracted USG / medication proof documents.
     @State private var name: String
     @State private var age: String
     @State private var hpl: String
@@ -17,27 +9,37 @@ struct ValidateDataView: View {
     @State private var goToHome = false
     
     init(name: String, age: String, hpl: String) {
-            _name = State(initialValue: name)
-            _age = State(initialValue: age)
-            _hpl = State(initialValue: hpl)
-        }
+        _name = State(initialValue: name)
+        _age = State(initialValue: age)
+        _hpl = State(initialValue: hpl)
+    }
+    
+    @State private var saveError: String?
 
+    @Environment(\.modelContext) private var modelContext
+    
     var body: some View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
-                    Text("This form is autofill by document uploaded")
+                    Text("Formulir ini akan terisi otomatis berdasarkan dokumen yang diunggah.")
                         .font(.system(size: 13))
                         .foregroundColor(Color.hexPalette.darkgray)
 
-                    labeledField(title: "Name", text: $name)
-                    labeledField(title: "Age", text: $age, keyboardType: .numberPad)
+                    labeledField(title: "Nama", text: $name)
+                    labeledField(title: "Usia", text: $age, keyboardType: .numberPad)
 
                     VStack(alignment: .leading, spacing: 8) {
-                        labeledField(title: "Expected Due Date (EDD)", text: $hpl)
-                        Text("This due date will determine the expiration date of the app")
+                        labeledField(title: "Hari Perkiraan Lahir", text: $hpl)
+                        Text("Tanggal perkiraan lahir ini akan menentukan masa berlaku aplikasi.")
                             .font(.system(size: 13))
                             .foregroundColor(Color.hexPalette.darkgray)
+                    }
+
+                    if let saveError {
+                        Text(saveError)
+                            .font(.system(size: 13))
+                            .foregroundColor(.red)
                     }
                 }
                 .padding(20)
@@ -46,11 +48,10 @@ struct ValidateDataView: View {
             Divider()
 
             Button {
-                goToHome = true
+                saveProfileAndContinue()
             } label: {
                 Text("Konfirmasi")
             }
-            .buttonStyle(PrimaryButtonStyle())
             .padding(20)
         }
         .navigationTitle("Validasi Kehamilan")
@@ -75,10 +76,42 @@ struct ValidateDataView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 10))
         }
     }
+
+    private func saveProfileAndContinue() {
+        guard !name.trimmingCharacters(in: .whitespaces).isEmpty else {
+            saveError = "Nama tidak boleh kosong"
+            return
+        }
+        guard let ageValue = Int(age), ageValue > 0 else {
+            saveError = "Usia harus berupa angka yang valid"
+            return
+        }
+        guard !hpl.trimmingCharacters(in: .whitespaces).isEmpty else {
+            saveError = "Hari perkiraan lahir tidak boleh kosong"
+            return
+        }
+
+        let profile = UserProfile(
+            name: name,
+            age: ageValue,
+            expectedDueDate: hpl
+        )
+        modelContext.insert(profile)
+
+        do {
+            try modelContext.save()
+            saveError = nil
+            goToHome = true
+        } catch {
+            saveError = "Gagal menyimpan data: \(error.localizedDescription)"
+            print("[ValidateDataView] SwiftData save failed: \(error)")
+        }
+    }
 }
 
-//#Preview {
-//    NavigationStack {
-//        ValidateDataView(name: self.name, age: self.age, hpl: self.edd)
-//    }
-//}
+#Preview {
+    NavigationStack {
+        ValidateDataView(name: "Kartini", age: "36", hpl: "01-02-2026")
+    }
+    .modelContainer(for: UserProfile.self, inMemory: true)
+}
