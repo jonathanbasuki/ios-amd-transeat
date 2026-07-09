@@ -22,7 +22,7 @@ enum HomeState {
 
 struct HomeView: View {
     var expectedDueDate: String = ""
-   
+
     @StateObject private var viewModel = HomeViewModel()
 
     var body: some View {
@@ -34,18 +34,18 @@ struct HomeView: View {
                 Spacer()
             }
             .blur(radius: isModalState ? 3 : 0)
-            .animation(.easeInOut, value: currentState)
-            
+            .animation(.easeInOut, value: viewModel.currentState)
+
             // 2. Dimmed Overlay + Interactive Modal Cards
             if isModalState {
                 Color.black.opacity(0.4)
                     .ignoresSafeArea()
                     .transition(.opacity)
-                
+
                 modalCardOverlayView
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
-            
+
             // 3. Independent Header Layer (Always on top and clickable)
             VStack {
                 headerView
@@ -55,13 +55,20 @@ struct HomeView: View {
         .navigationBarBackButtonHidden(true)
         .onAppear {
             startTestingFlow()
+            viewModel.onAppear() // starts the beacon + syncs Watch to "locating"
         }
-        // Monitors state changes to handle the automatic popup dismissal sequence
-        .onChange(of: currentState) { oldValue, newValue in
+        .onDisappear {
+            viewModel.onDisappear() // stops the beacon
+        }
+        // Monitors state changes to: (1) run the ViewModel's beacon/Watch-sync
+        // side effects, and (2) handle the automatic popup dismissal sequence.
+        .onChange(of: viewModel.currentState) { oldValue, newValue in
+            viewModel.onStateChanged(to: newValue)
+
             if newValue == .seatConfirmDelay {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
                     withAnimation {
-                        currentState = .endTrip
+                        viewModel.currentState = .endTrip
                     }
                 }
             }
@@ -71,10 +78,10 @@ struct HomeView: View {
 
 // MARK: - View Layout Branches
 extension HomeView {
-    
+
     @ViewBuilder
     private var fullPageContentView: some View {
-        switch currentState {
+        switch viewModel.currentState {
         case .home:
             FullPageLayout(imageName: "mascot-detecting", title: "Kita sedang mencarimu\nMama!", subtitle: "Pastikan ponsel selalu dalam keadaan menyala")
         case .beaconFound:
@@ -91,25 +98,25 @@ extension HomeView {
             EmptyView()
         }
     }
-    
+
     @ViewBuilder
     private var modalCardOverlayView: some View {
         VStack {
-            switch currentState {
+            switch viewModel.currentState {
             case .askSeated:
                 ModalCardContainer {
                     HomeIconView(imageName: "mascot-askseated")
                     Text("Sudah dapat kursi?").font(.system(size: 20, weight: .bold)).foregroundColor(Color.hexPalette.cherry500)
-                    FlowButton(text: "Sudah", primary: true) { currentState = .changeTrain }
-                    FlowButton(text: "Belum", primary: false) { triggerUnconfirmDelayFlow() }
+                    FlowButton(text: "Sudah", primary: true) { viewModel.confirmSeated() }
+                    FlowButton(text: "Belum", primary: false) { viewModel.triggerUnconfirmDelayFlow() }
                     Text("Sisa waktu konfirmasi: 20s").font(.system(size: 12)).foregroundColor(.gray)
                 }
             case .changeTrain:
                 ModalCardContainer {
                     HomeIconView(imageName: "train")
                     Text("Mama akan ganti kereta?").font(.system(size: 20, weight: .bold)).foregroundColor(Color.hexPalette.cherry500)
-                    FlowButton(text: "Iya, saya akan ganti kereta", primary: true) { currentState = .seatConfirmDelay }
-                    FlowButton(text: "Tidak, ini kereta terakhir saya", primary: false) { currentState = .endTrip }
+                    FlowButton(text: "Iya, saya akan ganti kereta", primary: true) { viewModel.confirmChangingTrain() }
+                    FlowButton(text: "Tidak, ini kereta terakhir saya", primary: false) { viewModel.declineChangingTrain() }
                 }
             case .seatConfirmDelay:
                 ModalCardContainer {
@@ -129,9 +136,9 @@ extension HomeView {
 // MARK: - Logic, Timers, & Configurations
 extension HomeView {
     private var isModalState: Bool {
-        return currentState == .askSeated || currentState == .changeTrain || currentState == .seatConfirmDelay
+        return viewModel.currentState == .askSeated || viewModel.currentState == .changeTrain || viewModel.currentState == .seatConfirmDelay
     }
-    
+
     private var headerView: some View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 4) {
@@ -139,7 +146,7 @@ extension HomeView {
                 Text("Expected Due Date : \(expectedDueDate)").font(.system(size: 13)).foregroundColor(Color.hexPalette.darkgray)
             }
             Spacer()
-            
+
             NavigationLink(destination: ProfileView()) {
                 Image(systemName: "person.circle.fill")
                     .font(.system(size: 32))
@@ -150,25 +157,18 @@ extension HomeView {
         }
         .padding(20)
     }
-    
+
     private func startTestingFlow() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-            withAnimation { currentState = .beaconFound }
-            
+            withAnimation { viewModel.currentState = .beaconFound }
+
             DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-                withAnimation { currentState = .goToSeat }
-                
+                withAnimation { viewModel.currentState = .goToSeat }
+
                 DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-                    withAnimation { currentState = .askSeated }
+                    withAnimation { viewModel.currentState = .askSeated }
                 }
             }
-        }
-    }
-    
-    private func triggerUnconfirmDelayFlow() {
-        withAnimation { currentState = .seatUnconfirmDelay }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-            withAnimation { currentState = .askSeated }
         }
     }
 }

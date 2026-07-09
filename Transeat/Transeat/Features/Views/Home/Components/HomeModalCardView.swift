@@ -14,7 +14,7 @@ struct HomeModalCardView: View {
     var body: some View {
         VStack {
             switch viewModel.currentState {
-            case .beaconDetected:
+            case .beaconFound:
                 CardContainer {
                     Image("mascot-askseated")
                         .resizable()

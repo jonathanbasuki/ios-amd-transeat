@@ -2,10 +2,10 @@
 //  HomeViewModel.swift
 //  transeatluv
 //
-//  Owns HomeView's flow state, modal-dismiss state, the testing timers,
-//  the beacon lifecycle, AND keeps the Watch app in sync — every state
-//  change here is broadcast, and incoming state from the Watch (e.g. a
-//  button tapped there) is mirrored back into `currentState`.
+//  Owns HomeView's beacon lifecycle and keeps the Watch app in sync.
+//  The state machine / timing itself is owned by HomeView now (per the
+//  latest rewrite) — this ViewModel reacts to state changes rather than
+//  driving them, except for the button-action helper methods below.
 //
 
 import SwiftUI
@@ -16,7 +16,6 @@ final class HomeViewModel: ObservableObject {
 
     @Published var currentState: HomeState = .home
     @Published var isModalDismissed = false
-
     @Published var dragOffset: CGFloat = 0
 
     let beaconTransmitter = BeaconTransmitterManager()
@@ -28,27 +27,12 @@ final class HomeViewModel: ObservableObject {
         observeIncomingState()
     }
 
-    // MARK: - Derived state
-
-    /// Whether the active state is one that *can* show a modal.
-    var isModalState: Bool {
-        switch currentState {
-        case .beaconDetected, .changeTrain, .seatConfirmDelay, .seatUnconfirmDelay:
-            return true
-        default:
-            return false
-        }
-    }
-
-    /// Whether the modal should actually be visible right now.
-    var isModalVisible: Bool {
-        isModalState && !isModalDismissed
-    }
-
     // MARK: - Lifecycle entry points (called from HomeView)
 
+    /// NOTE: this no longer starts its own testing-flow timers — HomeView
+    /// owns that now. This only handles the non-UI side effects: starting
+    /// the beacon and telling the Watch what's happening.
     func onAppear() {
-        startTestingFlow()
         startBeaconIfNeeded()
         broadcastStateToWatch() // sync immediately: Watch should show "locating" right away
     }
@@ -86,21 +70,29 @@ final class HomeViewModel: ObservableObject {
     }
 
     // MARK: - Button-driven transitions
+    // Always call these from HomeView's buttons (instead of setting
+    // `viewModel.currentState` directly) so the beacon stops and the
+    // action gets printed/broadcast correctly no matter which button
+    // triggered the transition.
+
+    /// User tapped "Sudah" on the "Sudah dapat kursi?" popup.
     func confirmSeated() {
         print("[HomeViewModel] user tapped 'Sudah' — stopping beacon advertising")
         beaconTransmitter.stopAdvertising()
         currentState = .changeTrain
     }
-    
+
+    /// User tapped "Belum" on the "Sudah dapat kursi?" popup.
     func triggerUnconfirmDelayFlow() {
         print("[HomeViewModel] user tapped 'Belum' — stopping beacon advertising")
         beaconTransmitter.stopAdvertising()
 
         withAnimation { currentState = .seatUnconfirmDelay }
 
-        // After 15 seconds, route back to Beacon Detected
-        DispatchQueue.main.asyncAfter(deadline: .now() + 15) { [weak self] in
-            withAnimation { self?.currentState = .beaconDetected }
+        // After 5 seconds, route back to the "Sudah dapat kursi?" popup
+        // (matches HomeView's own delay timing for this state).
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
+            withAnimation { self?.currentState = .askSeated }
         }
     }
 
@@ -112,20 +104,6 @@ final class HomeViewModel: ObservableObject {
         currentState = .endTrip
     }
 
-    // MARK: - Automated testing flow
-
-    private func startTestingFlow() {
-        // Step 1: Default is .home. Transition to .goToSeat after 5s
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
-            withAnimation { self?.currentState = .goToSeat }
-
-            // Step 2: Transition from .goToSeat to .beaconDetected after 5s
-            DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-                withAnimation { self?.currentState = .beaconDetected }
-            }
-        }
-    }
-
     // MARK: - Beacon lifecycle (non-UI)
 
     private func startBeaconIfNeeded() {
@@ -135,9 +113,14 @@ final class HomeViewModel: ObservableObject {
         }
     }
 
+    /// Keeps advertising through the whole "searching / detected, waiting
+    /// for confirmation" phase (.home, .beaconFound, .goToSeat, .askSeated)
+    /// — it must NOT stop just because a popup appeared. It only stops via
+    /// an explicit user action (confirmSeated() / triggerUnconfirmDelayFlow())
+    /// or once the flow moves past that phase entirely.
     private func handleBeaconLifecycle(for state: HomeState) {
         switch state {
-        case .home, .goToSeat, .beaconDetected:
+        case .home, .beaconFound, .goToSeat, .askSeated:
             guard !beaconTransmitter.isAdvertising else { return }
             print("[HomeViewModel] state -> \(state) — auto-starting beacon advertising")
             beaconTransmitter.startAdvertising()
@@ -149,10 +132,11 @@ final class HomeViewModel: ObservableObject {
     }
 
     // MARK: - Watch <-> iPhone sync
+
     private var wireScreenName: String {
         switch currentState {
-        case .home, .goToSeat: return "locating"
-        case .beaconDetected: return "seatCheck"
+        case .home, .beaconFound, .goToSeat, .beaconNotFound: return "locating"
+        case .askSeated: return "seatCheck"
         case .changeTrain: return "changeTrain"
         case .seatConfirmDelay: return "seatConfirmedTimer"
         case .seatUnconfirmDelay: return "haventSeatedTimer"
@@ -162,7 +146,7 @@ final class HomeViewModel: ObservableObject {
 
     private static func homeState(fromWireScreenName name: String) -> HomeState? {
         switch name {
-        case "seatCheck": return .beaconDetected
+        case "seatCheck": return .askSeated
         case "changeTrain": return .changeTrain
         case "seatConfirmedTimer": return .seatConfirmDelay
         case "haventSeatedTimer": return .seatUnconfirmDelay
@@ -189,13 +173,13 @@ final class HomeViewModel: ObservableObject {
 
                 self.isApplyingRemoteState = true
                 defer { self.isApplyingRemoteState = false }
-                
+
                 switch (raw, self.currentState) {
-                case ("changeTrain", .beaconDetected):
+                case ("changeTrain", .askSeated):
                     print("[HomeViewModel] 'Sudah' confirmed from Watch")
                     self.confirmSeated()
 
-                case ("haventSeatedTimer", .beaconDetected):
+                case ("haventSeatedTimer", .askSeated):
                     print("[HomeViewModel] 'Belum' confirmed from Watch")
                     self.triggerUnconfirmDelayFlow()
 
