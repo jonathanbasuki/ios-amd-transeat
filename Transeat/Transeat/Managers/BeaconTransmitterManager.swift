@@ -41,7 +41,7 @@ class BeaconTransmitterManager: NSObject, ObservableObject, CBPeripheralManagerD
             uuid: beaconUUID,
             major: major,
             minor: minor,
-            identifier: "com.yourapp.beacon"
+            identifier: "com.amd.transeat"
         )
         let peripheralData = region.peripheralData(withMeasuredPower: nil as NSNumber?)
         peripheralManager.startAdvertising(peripheralData as? [String: Any])
