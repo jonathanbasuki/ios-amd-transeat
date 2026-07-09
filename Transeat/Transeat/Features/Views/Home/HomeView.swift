@@ -1,5 +1,5 @@
 //
-//  HomeViewController.swift
+//  HomeView.swift
 //  transeatluv
 //
 //  Created by Gabriella Erlinda on 03/07/26.
@@ -7,219 +7,116 @@
 
 import SwiftUI
 
+// MARK: - App State Machine
 enum HomeState {
     case home
+    case beaconFound
+    case beaconNotFound
     case goToSeat
-    case beaconDetected
-    case changeTrain
     case seatConfirmDelay
     case seatUnconfirmDelay
     case endTrip
+    case askSeated
+    case changeTrain
 }
 
 struct HomeView: View {
     var expectedDueDate: String = "12/04/2027"
-    
-    // Track current flow state
     @State private var currentState: HomeState = .home
     
     var body: some View {
         ZStack {
-            // Background & Header Layout (Always present)
-            VStack(spacing: 0) {
-                headerView
-                
+            // 1. Core Background Content
+            VStack {
                 Spacer()
-                
-                // Content changes based on simple state or final state
-                centerContentView
-                
+                fullPageContentView
                 Spacer()
             }
-            .blur(radius: isModalState ? 2 : 0) // Optional subtle blur when modal is up
+            .blur(radius: isModalState ? 3 : 0)
+            .animation(.easeInOut, value: currentState)
             
-            // 2. Dimmed Overlay + Modal Cards for Interactive States
+            // 2. Dimmed Overlay + Interactive Modal Cards
             if isModalState {
                 Color.black.opacity(0.4)
                     .ignoresSafeArea()
-                    
-                modalCardView
+                    .transition(.opacity)
+                
+                modalCardOverlayView
                     .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+            
+            // 3. Independent Header Layer (Always on top and clickable)
+            VStack {
+                headerView
+                Spacer()
             }
         }
         .navigationBarBackButtonHidden(true)
         .onAppear {
             startTestingFlow()
         }
+        // Monitors state changes to handle the automatic popup dismissal sequence
+        .onChange(of: currentState) { oldValue, newValue in
+            if newValue == .seatConfirmDelay {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                    withAnimation {
+                        currentState = .endTrip
+                    }
+                }
+            }
+        }
     }
 }
 
-// MARK: - Subviews & Layout Components
+// MARK: - View Layout Branches
 extension HomeView {
     
-    // Header component
-    private var headerView: some View {
-        HStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Halo, Mama!")
-                    .font(.system(size: 22, weight: .bold))
-                    .foregroundColor(.black)
-                Text("Expected Due Date : \(expectedDueDate)")
-                    .font(.system(size: 13))
-                    .foregroundColor(Color.hexPalette.darkgray)
-            }
-            Spacer()
-            Image(systemName: "person.circle.fill")
-                .font(.system(size: 32))
-                .foregroundColor(Color.hexPalette.cherry500)
-        }
-        .padding(20)
-    }
-    
-    // Center Content for non-modal states (Home, GoToSeat, EndTrip)
     @ViewBuilder
-    private var centerContentView: some View {
+    private var fullPageContentView: some View {
         switch currentState {
         case .home:
-            VStack(spacing: 16) {
-                // Replace with your cherry asset if available
-                Image("mascot-detecting")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 200, height: 200)
-                    .foregroundColor(Color.hexPalette.cherry500)
-                
-                Text("Kita sedang mencarimu\nMama!")
-                    .font(.system(size: 24, weight: .bold))
-                    .multilineTextAlignment(.center)
-                    .foregroundColor(Color.hexPalette.cherry500)
-                
-                Text("Pastikan ponsel selalu dalam keadaan menyala")
-                    .font(.system(size: 16))
-                    .foregroundColor(.gray)
-            }
-            
-        case .goToSeat:
-            VStack(spacing: 16) {
-                Image("mascot-detected")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 200, height: 200)
-                
-                Text("Menujulah ke kursi\nprioritas terdekat")
-                    .font(.system(size: 24, weight: .bold))
-                    .multilineTextAlignment(.center)
-                    .foregroundColor(Color.hexPalette.cherry500)
-                
-                Text("Pastikan ponsel selalu dalam keadaan menyala")
-                    .font(.system(size: 16))
-                    .foregroundColor(.gray)
-            }
-            
+            FullPageLayout(imageName: "mascot-detecting", title: "Kita sedang mencarimu\nMama!", subtitle: "Pastikan ponsel selalu dalam keadaan menyala")
+        case .beaconFound:
+            FullPageLayout(imageName: "mascot-detected", title: "Kita menemukan Mama!", subtitle: "Pastikan ponsel selalu dalam keadaan menyala", badgeType: .confirmed)
+        case .beaconNotFound:
+            FullPageLayout(imageName: "mascot-notdetected", title: "Kita tidak menemukan\nMama!", subtitle: "Pastikan ponsel selalu dalam keadaan menyala", badgeType: .notFound)
+        case .goToSeat, .seatConfirmDelay:
+            FullPageLayout(imageName: "mascot-chair", title: "Menujulah ke kursi\nprioritas terdekat", subtitle: "Pastikan ponsel selalu dalam keadaan menyala")
+        case .seatUnconfirmDelay:
+            FullPageLayout(imageName: "mascot-notseated", title: "Belum dapat tempat duduk?", subtitle: "Tunggu sebentar ya, kami akan mencarikan lagi.")
         case .endTrip:
-            VStack(spacing: 16) {
-                Image("mascot-hai")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 200, height: 200)
-
-                Text("Nikmati perjalanan\nMama!")
-                    .font(.system(size: 24, weight: .bold))
-                    .multilineTextAlignment(.center)
-                    .foregroundColor(Color.hexPalette.cherry500)
-                
-                Text("Pakailah kami lagi pada perjalanan Anda berikutnya.")
-                    .font(.system(size: 16))
-                    .foregroundColor(.gray)
-            }
-            
+            FullPageLayout(imageName: "mascot-hai", title: "Nikmati perjalanan\nMama!", subtitle: "Pakailah kami lagi pada perjalanan Anda berikutnya.")
         default:
             EmptyView()
         }
     }
     
-    // Modal Cards Switcher
     @ViewBuilder
-    private var modalCardView: some View {
+    private var modalCardOverlayView: some View {
         VStack {
             switch currentState {
-            case .beaconDetected:
-                cardContainer {
-                    Image("mascot-askseated")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 150, height: 150)
-                    Text("Sudah dapat kursi?")
-                        .font(.system(size: 20, weight: .bold))
-                        .foregroundColor(Color.hexPalette.cherry500)
-                    
-                    Button(action: { currentState = .changeTrain }) {
-                        buttonLabel("Sudah", primary: true)
-                    }
-                    
-                    Button(action: { triggerUnconfirmDelayFlow() }) {
-                        buttonLabel("Belum", primary: false)
-                    }
-                    
-                    Text("Sisa waktu konfirmasi: 20s")
-                        .font(.system(size: 12))
-                        .foregroundColor(.gray)
+            case .askSeated:
+                ModalCardContainer {
+                    HomeIconView(imageName: "mascot-askseated")
+                    Text("Sudah dapat kursi?").font(.system(size: 20, weight: .bold)).foregroundColor(Color.hexPalette.cherry500)
+                    FlowButton(text: "Sudah", primary: true) { currentState = .changeTrain }
+                    FlowButton(text: "Belum", primary: false) { triggerUnconfirmDelayFlow() }
+                    Text("Sisa waktu konfirmasi: 20s").font(.system(size: 12)).foregroundColor(.gray)
                 }
-                
             case .changeTrain:
-                cardContainer {
-                    Image("train")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 150, height: 150)
-                    
-                    Text("Mama akan ganti kereta?")
-                        .font(.system(size: 20, weight: .bold))
-                        .foregroundColor(Color.hexPalette.cherry500)
-                    
-                    Button(action: { currentState = .seatConfirmDelay }) {
-                        buttonLabel("Iya, saya akan ganti kereta", primary: true)
-                    }
-                    
-                    Button(action: { currentState = .endTrip }) {
-                        buttonLabel("Tidak, ini kereta terakhir saya", primary: false)
-                    }
+                ModalCardContainer {
+                    HomeIconView(imageName: "train")
+                    Text("Mama akan ganti kereta?").font(.system(size: 20, weight: .bold)).foregroundColor(Color.hexPalette.cherry500)
+                    FlowButton(text: "Iya, saya akan ganti kereta", primary: true) { currentState = .seatConfirmDelay }
+                    FlowButton(text: "Tidak, ini kereta terakhir saya", primary: false) { currentState = .endTrip }
                 }
-                
             case .seatConfirmDelay:
-                cardContainer {
-                    Image("mascot-seated")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 150, height: 150)
+                ModalCardContainer {
+                    HomeIconView(imageName: "mascot-seated")
                     Text("Kursi Terkonfirmasi!")
                         .font(.system(size: 20, weight: .bold))
                         .foregroundColor(Color.hexPalette.cherry500)
-                    Text("Estimasi Waktu Tunggu")
-                        .font(.system(size: 16))
-                        .foregroundColor(.gray)
-                    Text("30:00")
-                        .font(.system(size: 40, weight: .bold))
-                        .foregroundColor(Color.hexPalette.cherry500)
                 }
-                
-            case .seatUnconfirmDelay:
-                cardContainer {
-                    Image("mascot-notseated")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 150, height: 150)
-                    Text("Belum dapat tempat duduk?")
-                        .font(.system(size: 20, weight: .bold))
-                        .foregroundColor(Color.hexPalette.cherry500)
-                    Text("Estimasi Waktu Tunggu")
-                        .font(.system(size: 16))
-                        .foregroundColor(.gray)
-                    Text("05:00")
-                        .font(.system(size: 40, weight: .bold))
-                        .foregroundColor(Color.hexPalette.cherry500)
-                }
-                
             default:
                 EmptyView()
             }
@@ -228,75 +125,55 @@ extension HomeView {
     }
 }
 
-// MARK: - Logic & Helper Computations
+// MARK: - Logic, Timers, & Configurations
 extension HomeView {
-    
-    // Helper to determine if the active state requires a dimmed modal layout
     private var isModalState: Bool {
-        switch currentState {
-        case .beaconDetected, .changeTrain, .seatConfirmDelay, .seatUnconfirmDelay:
-            return true
-        default:
-            return false
-        }
+        return currentState == .askSeated || currentState == .changeTrain || currentState == .seatConfirmDelay
     }
     
-    // Automated flow steps via Async Timers
-    private func startTestingFlow() {
-        // Step 1: Default is .home. Transition to .goToSeat after 5s
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-            withAnimation { currentState = .goToSeat }
+    private var headerView: some View {
+        HStack(alignment: .top) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Halo, Mama!").font(.system(size: 22, weight: .bold)).foregroundColor(.black)
+                Text("Expected Due Date : \(expectedDueDate)").font(.system(size: 13)).foregroundColor(Color.hexPalette.darkgray)
+            }
+            Spacer()
             
-            // Step 2: Transition from .goToSeat to .beaconDetected after 5s
-            DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-                withAnimation { currentState = .beaconDetected }
+            NavigationLink(destination: ProfileView()) {
+                Image(systemName: "person.circle.fill")
+                    .font(.system(size: 32))
+                    .foregroundColor(Color.hexPalette.cherry500)
+                    .contentShape(Circle())
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(20)
+    }
+    
+    private func startTestingFlow() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+            withAnimation { currentState = .beaconFound }
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+                withAnimation { currentState = .goToSeat }
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+                    withAnimation { currentState = .askSeated }
+                }
             }
         }
     }
     
-    // Handles loop for "Belum" selection
     private func triggerUnconfirmDelayFlow() {
         withAnimation { currentState = .seatUnconfirmDelay }
-        
-        // After 5 seconds, route back to Beacon Detected
         DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-            withAnimation { currentState = .beaconDetected }
+            withAnimation { currentState = .askSeated }
         }
-    }
-    
-    // Reusable styling for modal cards
-    private func cardContainer<Content: View>(@ViewBuilder content: () -> Content) -> some View {
-        VStack(spacing: 20) {
-            // Icon Placeholder for Cherry graphic assets
-            Image(systemName: "cherry.fill")
-                .font(.system(size: 44))
-                .foregroundColor(Color.hexPalette.cherry500)
-                .padding(.top, 10)
-                
-            content()
-        }
-        .padding(24)
-        .background(Color.white)
-        .cornerRadius(20)
-        .shadow(radius: 10)
-    }
-    
-    // Reusable custom buttons matching wireframe layout
-    private func buttonLabel(_ text: String, primary: Bool) -> some View {
-        Text(text)
-            .font(.system(size: 14, weight: .medium))
-            .foregroundColor(primary ? .white : Color.hexPalette.cherry500)
-            .frame(maxWidth: .infinity)
-            .frame(height: 44)
-            .background(primary ? Color.hexPalette.cherry500 : Color.white)
-            .cornerRadius(22)
-            .overlay(
-                RoundedRectangle(cornerRadius: 22)
-                    .stroke(Color.hexPalette.cherry500, lineWidth: primary ? 0 : 1)
-            )
     }
 }
 
 #Preview {
-    HomeView()
+    NavigationStack {
+        HomeView()
+    }
 }
