@@ -16,9 +16,9 @@ enum DocumentSource {
 }
 
 struct OCRResult {
-    var name: String = "-"
-    var age: String = "-"
-    var hpl: String = "-"
+    var name: String = ""
+    var age: String = ""
+    var hpl: String = ""
 }
 
 struct OCR {
@@ -68,6 +68,7 @@ struct OCR {
                 let textLower = text.lowercased()
                 if textLower.contains("hpl") || textLower.contains("edd") || textLower.contains("perkiraan") {
                     if let range = text.range(of: datePattern, options: .regularExpression) {
+                        let rawDate = String(text[range])
                         result.hpl = String(text[range])
                         eddFound = true
                         break
@@ -77,7 +78,8 @@ struct OCR {
             if !eddFound {
                 for text in textLines {
                     if let range = text.range(of: datePattern, options: .regularExpression) {
-                        result.hpl = String(text[range])
+                        let rawDate = String(text[range])
+                        result.hpl = formatToStandardDate(rawDate)
                         break
                     }
                 }
@@ -95,7 +97,7 @@ struct OCR {
                         candidateName = components[1].trimmingCharacters(in: .whitespacesAndNewlines)
                     }
                     
-                    if candidateName.isEmpty || candidateName == "-" {
+                    if candidateName.isEmpty || candidateName == "" {
                         let nextIndex = index + 1
                         if nextIndex < textLines.count {
                             candidateName = textLines[nextIndex].trimmingCharacters(in: .whitespacesAndNewlines)
@@ -113,17 +115,26 @@ struct OCR {
                         candidateAge = components[1].trimmingCharacters(in: .whitespacesAndNewlines)
                     }
                     
-                    if candidateAge.isEmpty || candidateAge == "-" {
+                    if candidateAge.isEmpty || candidateAge == "" {
                         let nextIndex = index + 1
                         if nextIndex < textLines.count {
                             candidateAge = textLines[nextIndex].trimmingCharacters(in: .whitespacesAndNewlines)
                         }
                     }
-                    result.age = candidateAge.replacingOccurrences(of: ":", with: "", options: .caseInsensitive)
-                        .trimmingCharacters(in: .whitespacesAndNewlines)
+                    let rawAge = candidateAge.replacingOccurrences(of: ":", with: "", options: .caseInsensitive)
+                                        .trimmingCharacters(in: .whitespacesAndNewlines)
+                    
+                    result.age = String(rawAge.filter { $0.isNumber })
                 }
             }
         }
         return result
     }
+}
+
+private func formatToStandardDate(_ rawDate: String) -> String {
+    let cleanDate = rawDate
+        .replacingOccurrences(of: ".", with: "/")
+        .replacingOccurrences(of: "-", with: "/")
+    return cleanDate
 }

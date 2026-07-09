@@ -21,9 +21,10 @@ enum HomeState {
 }
 
 struct HomeView: View {
-    var expectedDueDate: String = "12/04/2027"
-    @State private var currentState: HomeState = .home
-    
+    var expectedDueDate: String = ""
+   
+    @StateObject private var viewModel = HomeViewModel()
+
     var body: some View {
         ZStack {
             // 1. Core Background Content
