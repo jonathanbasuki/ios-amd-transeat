@@ -18,8 +18,8 @@ enum HomeState {
 }
 
 struct HomeView: View {
-    var expectedDueDate: String = "12/04/2027"
-
+    var expectedDueDate: String = ""
+   
     @StateObject private var viewModel = HomeViewModel()
 
     var body: some View {
