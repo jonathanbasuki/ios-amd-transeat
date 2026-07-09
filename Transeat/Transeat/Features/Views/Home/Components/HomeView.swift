@@ -159,7 +159,7 @@ extension HomeView {
     }
 
     private func startTestingFlow() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
             withAnimation { viewModel.currentState = .beaconFound }
 
             DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
