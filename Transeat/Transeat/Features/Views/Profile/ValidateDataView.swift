@@ -17,6 +17,8 @@ struct ValidateDataView: View {
     
     @State private var goToHome = false
     
+    @State private var showSuccessPopup = false
+    
     private enum Field {
         case name, age
     }
@@ -42,72 +44,79 @@ struct ValidateDataView: View {
     @Environment(\.modelContext) private var modelContext
     
     var body: some View {
-        VStack(spacing: 0) {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
-                    Text("Formulir ini akan terisi otomatis berdasarkan dokumen yang diunggah, namun Anda tetap dapat mengeditnya")
-                        .font(.system(size: 13))
-                        .foregroundColor(Color.hexPalette.darkgray)
-                    
-                    NotificationBanner(type: uploadStatus, message: bannerMessage)
-                    
-                    labeledField(title: "Nama", text: $name)
-                        .focused($focusedField, equals: .name)
-                    
-                    labeledField(title: "Usia", text: $age, keyboardType: .numberPad)
-                        .focused($focusedField, equals: .age)
-                    
-                    VStack(alignment: .leading, spacing: 8) {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("Hari Perkiraan Lahir")
-                                .font(.system(size: 17, weight: .semibold))
-                                .foregroundColor(.black)
-                            
-                            Text(hpl.isEmpty ? "-" : hpl)
-                                .font(.system(size: 16))
-                                .foregroundColor(.gray)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.horizontal, 14)
-                                .padding(.vertical, 12)
-                                .background(Color.hexPalette.lightgray.opacity(0.6))
-                                .clipShape(RoundedRectangle(cornerRadius: 10))
-                        }
-                        
-                        Text("Tanggal perkiraan lahir ini akan menentukan masa berlaku aplikasi.")
+        ZStack{
+            VStack(spacing: 0) {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 24) {
+                        Text("Formulir ini akan terisi otomatis berdasarkan dokumen yang diunggah, namun Anda tetap dapat mengeditnya")
                             .font(.system(size: 13))
                             .foregroundColor(Color.hexPalette.darkgray)
+                        
+                        NotificationBanner(type: uploadStatus, message: bannerMessage)
+                        
+                        labeledField(title: "Nama", text: $name)
+                            .focused($focusedField, equals: .name)
+                        
+                        labeledField(title: "Usia", text: $age, keyboardType: .numberPad)
+                            .focused($focusedField, equals: .age)
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("Hari Perkiraan Lahir")
+                                    .font(.system(size: 17, weight: .semibold))
+                                    .foregroundColor(.black)
+                                
+                                Text(hpl.isEmpty ? "-" : hpl)
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.gray)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.horizontal, 14)
+                                    .padding(.vertical, 12)
+                                    .background(Color.hexPalette.lightgray.opacity(0.6))
+                                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                            }
+                            
+                            Text("Tanggal perkiraan lahir ini akan menentukan masa berlaku aplikasi.")
+                                .font(.system(size: 13))
+                                .foregroundColor(Color.hexPalette.darkgray)
+                        }
+                        
+                        if let saveError {
+                            Text(saveError)
+                                .font(.system(size: 13))
+                                .foregroundColor(.red)
+                        }
                     }
-                    
-                    if let saveError {
-                        Text(saveError)
-                            .font(.system(size: 13))
-                            .foregroundColor(.red)
-                    }
+                    .padding(20)
                 }
+                .onTapGesture {
+                    focusedField = nil
+                }
+                
+                TermAndConditionView(isChecked: $isTermsAccepted)
+                
+                Divider()
+                
+                Button {
+                    focusedField = nil
+                    
+                    saveProfileAndContinue()
+                    
+                } label: {
+                    Text("Konfirmasi")
+                }
+                .buttonStyle(PrimaryButtonStyle(isDisabled: !isTermsAccepted))
+                .disabled(!isTermsAccepted)
                 .padding(20)
+                
             }
-            .onTapGesture {
-                focusedField = nil
+            if showSuccessPopup {
+                UploadSucces()
+                    .transition(.opacity.combined(with: .scale)) //
+                    .zIndex(1)
             }
-            
-            TermAndConditionView(isChecked: $isTermsAccepted)
-            
-            Divider()
-            
-            Button {
-                focusedField = nil
-                saveProfileAndContinue()
-            } label: {
-                Text("Konfirmasi")
-            }
-            .buttonStyle(PrimaryButtonStyle(isDisabled: !isTermsAccepted))
-            .disabled(!isTermsAccepted)
-            .padding(20)
-            
         }
-        .onTapGesture {
-            focusedField = nil
-        }
+        
         .navigationTitle("Validasi Kehamilan")
         .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(isPresented: $goToHome) {
@@ -131,36 +140,49 @@ struct ValidateDataView: View {
         }
     }
     
+
     private func saveProfileAndContinue() {
         guard !name.trimmingCharacters(in: .whitespaces).isEmpty else {
-            saveError = "Nama tidak boleh kosong"
-            return
-        }
-        guard let ageValue = Int(age), ageValue > 0 else {
-            saveError = "Usia harus berupa angka yang valid"
-            return
-        }
-        guard !hpl.trimmingCharacters(in: .whitespaces).isEmpty else {
-            saveError = "Hari perkiraan lahir tidak boleh kosong"
-            return
-        }
+                    saveError = "Nama tidak boleh kosong"
+                    return
+                }
+                guard let ageValue = Int(age), ageValue > 0 else {
+                    saveError = "Usia harus berupa angka yang valid"
+                    return
+                }
+                guard !hpl.trimmingCharacters(in: .whitespaces).isEmpty else {
+                    saveError = "Hari perkiraan lahir tidak boleh kosong"
+                    return
+                }
+
+            let profile = UserProfile(
+                name: name,
+                age: ageValue,
+                expectedDueDate: hpl)
         
-        let profile = UserProfile(
-            name: name,
-            age: ageValue,
-            expectedDueDate: hpl
-        )
-        modelContext.insert(profile)
-        
-        do {
-            try modelContext.save()
-            saveError = nil
-            goToHome = true
-        } catch {
-            saveError = "Gagal menyimpan data: \(error.localizedDescription)"
-            print("[ValidateDataView] SwiftData save failed: \(error)")
+            modelContext.insert(profile)
+
+            do {
+                try modelContext.save()
+                saveError = nil
+                
+                
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                    showSuccessPopup = true
+                }
+                
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                    withAnimation {
+                        showSuccessPopup = false
+                        goToHome = true
+                    }
+                }
+                
+            } catch {
+                saveError = "Gagal menyimpan data: \(error.localizedDescription)"
+            }
         }
-    }
 }
 
 #Preview {
