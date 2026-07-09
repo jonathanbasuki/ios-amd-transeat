@@ -19,6 +19,7 @@ final class HomeViewModel: ObservableObject {
     @Published var dragOffset: CGFloat = 0
 
     let beaconTransmitter = BeaconTransmitterManager()
+    let confirmationTransmitter = ConfirmationTransmitterManager()
 
     private var isApplyingRemoteState = false
     private var connectivityCancellable: AnyCancellable?
@@ -79,6 +80,7 @@ final class HomeViewModel: ObservableObject {
     func confirmSeated() {
         print("[HomeViewModel] user tapped 'Sudah' — stopping beacon advertising")
         beaconTransmitter.stopAdvertising()
+        confirmationTransmitter.send(.confirmedYes)
         currentState = .changeTrain
     }
 
@@ -86,6 +88,7 @@ final class HomeViewModel: ObservableObject {
     func triggerUnconfirmDelayFlow() {
         print("[HomeViewModel] user tapped 'Belum' — stopping beacon advertising")
         beaconTransmitter.stopAdvertising()
+        confirmationTransmitter.send(.confirmedNo)
 
         withAnimation { currentState = .seatUnconfirmDelay }
 
