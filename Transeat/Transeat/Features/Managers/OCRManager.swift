@@ -1,10 +1,3 @@
-//
-//  OCR.swift
-//  Transeat
-//
-//  Created by Naila Lauza on 07/07/26.
-//
-
 import SwiftUI
 import Vision
 import Foundation
@@ -19,10 +12,10 @@ struct OCRResult {
     var name: String = ""
     var age: String = ""
     var hpl: String = ""
+    var status: String = "Success"
 }
 
-struct OCR {
-    
+struct OCRManager {
     func recognizeText(in image: UIImage, for source: DocumentSource, completion: @escaping (OCRResult) -> Void) {
         guard let cgImage = image.cgImage else {
             completion(OCRResult())
@@ -64,26 +57,41 @@ struct OCR {
         switch source {
         case .usgProof:
             var eddFound = false
-            for text in textLines {
-                let textLower = text.lowercased()
-                if textLower.contains("hpl") || textLower.contains("edd") || textLower.contains("perkiraan") {
-                    if let range = text.range(of: datePattern, options: .regularExpression) {
-                        let rawDate = String(text[range])
-                        result.hpl = String(text[range])
-                        eddFound = true
-                        break
+                    var detectedRawDate: String? = nil
+                   
+                    for text in textLines {
+                        let textLower = text.lowercased()
+                        if textLower.contains("hpl") || textLower.contains("edd") || textLower.contains("perkiraan") {
+                            if let range = text.range(of: datePattern, options: .regularExpression) {
+                                detectedRawDate = String(text[range])
+                                eddFound = true
+                                break
+                            }
+                        }
                     }
-                }
-            }
-            if !eddFound {
-                for text in textLines {
-                    if let range = text.range(of: datePattern, options: .regularExpression) {
-                        let rawDate = String(text[range])
-                        result.hpl = formatToStandardDate(rawDate)
-                        break
+                    
+                    if !eddFound {
+                        for text in textLines {
+                            if let range = text.range(of: datePattern, options: .regularExpression) {
+                                detectedRawDate = String(text[range])
+                                break
+                            }
+                        }
                     }
-                }
-            }
+                    
+                    if let rawDate = detectedRawDate {
+                        let formattedDate = formatToStandardDate(rawDate)
+                        
+                        if isValidHPL(formattedDate) {
+                            result.hpl = formattedDate
+                            result.status = "Success"
+                        } else {
+                            result.hpl = ""
+                            result.status = "Error: HPL tidak valid (Harus hari ini hingga 9 bulan ke depan)"
+                        }
+                    } else {
+                        result.status = "Error: Tanggal tidak ditemukan"
+                    }
             
         case .medProof:
             for (index, text) in textLines.enumerated() {
@@ -137,4 +145,24 @@ private func formatToStandardDate(_ rawDate: String) -> String {
         .replacingOccurrences(of: ".", with: "/")
         .replacingOccurrences(of: "-", with: "/")
     return cleanDate
+}
+
+private func isValidHPL(_ dateString: String) -> Bool {
+    let dateFormatter = DateFormatter()
+    dateFormatter.dateFormat = "dd/MM/yyyy"
+    
+    guard let hplDate = dateFormatter.date(from: dateString) else {
+        return false
+    }
+    
+    let calendar = Calendar.current
+    let now = Date()
+
+    let startOfToday = calendar.startOfDay(for: now)
+   
+    guard let maxHPLDate = calendar.date(byAdding: .month, value: 9, to: startOfToday) else {
+        return false
+    }
+
+    return hplDate >= startOfToday && hplDate <= maxHPLDate
 }

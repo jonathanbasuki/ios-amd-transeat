@@ -6,81 +6,113 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct ProfileView: View {
     @Environment(\.dismiss) private var dismiss
-    
-    @State private var profileName: String = "Kartini"
-    @State private var profileAge: String = "36"
-    @State private var profileEDD: String = "12/04/2027"
-    
+    @Environment(\.modelContext) private var modelContext
+
+    @Query private var profiles: [UserProfileModel]
+
+    @State private var profileName: String = ""
+    @State private var profileAge: String = ""
+    @State private var profileEDD: String = ""
+    @State private var usgImageData: Data? = nil
+    @State private var medicationImageData: Data? = nil
+    @State private var showImagePickerForUSG: Bool = false
+    @State private var showImagePickerForMedication: Bool = false
+
     var body: some View {
         VStack(spacing: 0) {
-            // Navigation Row Headers
-            profileHeaderView
-            
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(spacing: 24) {
-                    
-                    // 1. Image Upload Attachments Blocks
-                    VStack(spacing: 18) {
-                        MedicalProofRow(title: "USG Proof", fallbackImageName: "usg-placeholder")
-                        MedicalProofRow(title: "Newest Medication Proof", fallbackImageName: "usg-placeholder")
+                    VStack(spacing: 16) {
+                        ProfileInputField(label: "Nama", text: $profileName)
+                        ProfileInputField(label: "Usia", text: $profileAge)
+                        ProfileInputField(label: "Hari Perkiraan Lahir", text: $profileEDD, isDisabled: true)
                     }
                     
-                    // 2. Personal Biographical Profiles TextFields
-                    VStack(spacing: 16) {
-                        ProfileInputField(label: "Name", text: $profileName)
-                        ProfileInputField(label: "Age", text: $profileAge)
-                        ProfileInputField(label: "Expected Due Date (EDD)", text: $profileEDD)
+                    VStack(spacing: 18) {
+                        MedicalProofRow(
+                            title: "Bukti USG",
+                            fallbackImageName: "mascot-default",
+                            imageData: usgImageData,
+                            onTap: { showImagePickerForUSG = false }
+                        )
+                        MedicalProofRow(
+                            title: "Surat Dokter Terbaru",
+                            fallbackImageName: "mascot-default",
+                            imageData: medicationImageData,
+                            onTap: { showImagePickerForMedication = false }
+                        )
                     }
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 16)
             }
-            
+
             Spacer()
-            
-            // Bottom Form Commitment Button Actions
+
             saveProfileButton
         }
-        .navigationBarBackButtonHidden(true)
+        .navigationTitle("Profil Mama")
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            loadProfileFromSwiftData()
+        }
+        .sheet(isPresented: $showImagePickerForUSG) {
+            ImagePicker(selectedData: $usgImageData)
+        }
+        .sheet(isPresented: $showImagePickerForMedication) {
+            ImagePicker(selectedData: $medicationImageData)
+        }
+    }
+
+    // MARK: - SwiftData Operations
+
+    private func loadProfileFromSwiftData() {
+        if let existingProfile = profiles.first {
+            profileName = existingProfile.name
+            profileAge = String(existingProfile.age)
+            profileEDD = existingProfile.expectedDueDate
+            usgImageData = existingProfile.usgProofData
+            medicationImageData = existingProfile.medicationProofData
+        }
+    }
+
+    private func saveProfileToSwiftData() {
+        if let existingProfile = profiles.first {
+            // Update existing profile
+            existingProfile.name = profileName
+            existingProfile.age = Int(profileAge) ?? 0
+            existingProfile.expectedDueDate = profileEDD
+            existingProfile.usgProofData = usgImageData
+            existingProfile.medicationProofData = medicationImageData
+        } else {
+            // Create new profile
+            let newProfile = UserProfileModel(
+                name: profileName,
+                age: Int(profileAge) ?? 0,
+                expectedDueDate: profileEDD,
+                usgProofData: usgImageData,
+                medicationProofData: medicationImageData
+            )
+            modelContext.insert(newProfile)
+        }
+
+        do {
+            try modelContext.save()
+        } catch {
+            print("Failed to save profile: \(error.localizedDescription)")
+        }
     }
 }
 
 // MARK: - Interface View Subcomponents Layouts
 extension ProfileView {
-    
-    private var profileHeaderView: some View {
-        VStack(spacing: 0) {
-            HStack {
-                Button(action: { dismiss() }) {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundColor(Color.hexPalette.cherry500)
-                }
-                
-                Spacer()
-                
-                Text("Profil Mama")
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(.black)
-                
-                Spacer()
-                
-                // Balance Layout item
-                Image(systemName: "chevron.left").opacity(0)
-            }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 16)
-            
-            Divider()
-        }
-    }
-    
     private var saveProfileButton: some View {
         Button(action: {
-            // Save operations trigger safely here
+            saveProfileToSwiftData()
             dismiss()
         }) {
             Text("Simpan Perubahan")
@@ -96,8 +128,46 @@ extension ProfileView {
     }
 }
 
+// MARK: - Image Picker (UIKit Bridge)
+struct ImagePicker: UIViewControllerRepresentable {
+    @Binding var selectedData: Data?
+
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.sourceType = .photoLibrary
+        picker.delegate = context.coordinator
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+
+    class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        let parent: ImagePicker
+
+        init(_ parent: ImagePicker) {
+            self.parent = parent
+        }
+
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+            if let image = info[.originalImage] as? UIImage {
+                parent.selectedData = image.jpegData(compressionQuality: 0.8)
+            }
+            picker.dismiss(animated: true)
+        }
+
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            picker.dismiss(animated: true)
+        }
+    }
+}
+
 #Preview {
     NavigationStack {
         ProfileView()
     }
+    .modelContainer(for: UserProfileModel.self)
 }

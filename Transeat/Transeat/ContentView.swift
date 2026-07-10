@@ -10,7 +10,7 @@ import SwiftData
 
 struct ContentView: View {
     // Auto-updating list of every UserProfile currently stored locally.
-    @Query(sort: \UserProfile.createdAt, order: .reverse) private var storedUsers: [UserProfile]
+    @Query(sort: \UserProfileModel.createdAt, order: .reverse) private var storedUsers: [UserProfileModel]
 
     var body: some View {
         NavigationStack {
@@ -64,5 +64,5 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
-        .modelContainer(for: UserProfile.self, inMemory: true)
+        .modelContainer(for: UserProfileModel.self, inMemory: true)
 }

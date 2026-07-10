@@ -14,7 +14,7 @@ struct TranseatApp: App {
         WindowGroup {
             ContentView()
         }
-        .modelContainer(for: UserProfile.self)
+        .modelContainer(for: UserProfileModel.self)
     }
 }
 

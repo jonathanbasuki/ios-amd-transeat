@@ -1,10 +1,3 @@
-//
-//  UploadCard.swift
-//  transeatluv
-//
-//  Created by Gabriella Erlinda on 03/07/26.
-//
-
 import SwiftUI
 import PhotosUI
 
@@ -96,16 +89,17 @@ struct UploadCard: View {
         VStack(spacing: 8) {
             Image(systemName: "square.and.arrow.up")
                 .font(.system(size: 26, weight: .medium))
-                .foregroundColor(.black)
+                .foregroundColor(.gray)
 
             Text("Pilih file atau ambil foto untuk diunggah.")
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(.black)
                 .multilineTextAlignment(.center)
 
-            Text("Format yang didukung: PNG, JPG, JPEG, PDF")
+            Text("Format yang didukung: [PNG, JPG, JPEG, PDF](custom-action)")
                 .font(.system(size: 13))
                 .foregroundColor(.gray)
+                .tint(Color.hexPalette.cherry500)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 32)

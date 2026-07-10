@@ -1,13 +1,3 @@
-//
-//  HomeViewModel.swift
-//  transeatluv
-//
-//  Owns HomeView's beacon lifecycle and keeps the Watch app in sync.
-//  The state machine / timing itself is owned by HomeView now (per the
-//  latest rewrite) — this ViewModel reacts to state changes rather than
-//  driving them, except for the button-action helper methods below.
-//
-
 import SwiftUI
 import Combine
 
@@ -28,14 +18,9 @@ final class HomeViewModel: ObservableObject {
         observeIncomingState()
     }
 
-    // MARK: - Lifecycle entry points (called from HomeView)
-
-    /// NOTE: this no longer starts its own testing-flow timers — HomeView
-    /// owns that now. This only handles the non-UI side effects: starting
-    /// the beacon and telling the Watch what's happening.
     func onAppear() {
         startBeaconIfNeeded()
-        broadcastStateToWatch() // sync immediately: Watch should show "locating" right away
+        broadcastStateToWatch()
     }
 
     func onDisappear() {
@@ -48,8 +33,6 @@ final class HomeViewModel: ObservableObject {
         handleBeaconLifecycle(for: newState)
         broadcastStateToWatch()
     }
-
-    // MARK: - Modal interactions
 
     func dismissModal() {
         withAnimation(.spring()) {
@@ -69,45 +52,32 @@ final class HomeViewModel: ObservableObject {
             withAnimation(.spring()) { dragOffset = 0 }
         }
     }
-
-    // MARK: - Button-driven transitions
-    // Always call these from HomeView's buttons (instead of setting
-    // `viewModel.currentState` directly) so the beacon stops and the
-    // action gets printed/broadcast correctly no matter which button
-    // triggered the transition.
-
-    /// User tapped "Sudah" on the "Sudah dapat kursi?" popup.
+    
     func confirmSeated() {
-        print("[HomeViewModel] user tapped 'Sudah' — stopping beacon advertising")
+        print("[HomeViewModel] user tapped 'Sudah' — stopping beacon advertising (entering changeTrain flow)")
         beaconTransmitter.stopAdvertising()
         confirmationTransmitter.send(.confirmedYes)
         currentState = .changeTrain
     }
 
-    /// User tapped "Belum" on the "Sudah dapat kursi?" popup.
     func triggerUnconfirmDelayFlow() {
-        print("[HomeViewModel] user tapped 'Belum' — stopping beacon advertising")
-        beaconTransmitter.stopAdvertising()
+        print("[HomeViewModel] user tapped 'Belum' — beacon keeps advertising (not yet at changeTrain)")
         confirmationTransmitter.send(.confirmedNo)
 
-        withAnimation { currentState = .seatUnconfirmDelay }
+        withAnimation { currentState = .seatNotConfirmed }
 
-        // After 5 seconds, route back to the "Sudah dapat kursi?" popup
-        // (matches HomeView's own delay timing for this state).
         DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
             withAnimation { self?.currentState = .askSeated }
         }
     }
 
     func confirmChangingTrain() {
-        currentState = .seatConfirmDelay
+        currentState = .seatConfirmed
     }
 
     func declineChangingTrain() {
-        currentState = .endTrip
+        currentState = .enjoyTrip
     }
-
-    // MARK: - Beacon lifecycle (non-UI)
 
     private func startBeaconIfNeeded() {
         if currentState == .home {
@@ -116,45 +86,47 @@ final class HomeViewModel: ObservableObject {
         }
     }
 
-    /// Keeps advertising through the whole "searching / detected, waiting
-    /// for confirmation" phase (.home, .beaconFound, .goToSeat, .askSeated)
-    /// — it must NOT stop just because a popup appeared. It only stops via
-    /// an explicit user action (confirmSeated() / triggerUnconfirmDelayFlow())
-    /// or once the flow moves past that phase entirely.
+    /// Keeps advertising through every state that occurs BEFORE the
+    /// changeTrain confirmation (.home, .beaconFound, .beaconNotFound,
+    /// .goToSeat, .askSeated, .seatNotConfirmed) — the beacon should stay
+    /// on for the entire "still trying to get/confirm a seat" phase,
+    /// regardless of which popup happens to be showing.
+    /// It only stops once the flow actually reaches .changeTrain (see
+    /// confirmSeated()) or beyond (.seatConfirmed, .enjoyTrip).
     private func handleBeaconLifecycle(for state: HomeState) {
         switch state {
-        case .home, .beaconFound, .goToSeat, .askSeated:
+        case .home, .beaconFound, .beaconNotFound, .goToSeat, .askSeated, .seatNotConfirmed:
             guard !beaconTransmitter.isAdvertising else { return }
             print("[HomeViewModel] state -> \(state) — auto-starting beacon advertising")
             beaconTransmitter.startAdvertising()
-        default:
+        case .changeTrain, .seatConfirmed, .enjoyTrip:
             guard beaconTransmitter.isAdvertising else { return }
             print("[HomeViewModel] state -> \(state) — stopping beacon advertising")
             beaconTransmitter.stopAdvertising()
         }
     }
-
-    // MARK: - Watch <-> iPhone sync
-
+    
     private var wireScreenName: String {
         switch currentState {
-        case .home, .beaconFound, .goToSeat, .beaconNotFound: return "locating"
-        case .askSeated: return "seatCheck"
-        case .changeTrain: return "changeTrain"
-        case .seatConfirmDelay: return "seatConfirmedTimer"
-        case .seatUnconfirmDelay: return "haventSeatedTimer"
-        case .endTrip: return "enjoyTrip"
+            case .home: return "locating"
+            case .beaconFound, .goToSeat: return "beaconFound"
+            case .beaconNotFound: return "beaconNotFound"
+            case .askSeated: return "askSeated"
+            case .changeTrain: return "changeTrain"
+            case .seatConfirmed: return "seatConfirmed"
+            case .seatNotConfirmed: return "seatNotConfirmed"
+            case .enjoyTrip: return "enjoyTrip"
         }
     }
 
     private static func homeState(fromWireScreenName name: String) -> HomeState? {
         switch name {
-        case "seatCheck": return .askSeated
-        case "changeTrain": return .changeTrain
-        case "seatConfirmedTimer": return .seatConfirmDelay
-        case "haventSeatedTimer": return .seatUnconfirmDelay
-        case "enjoyTrip": return .endTrip
-        default: return nil
+            case "askSeated": return .askSeated
+            case "changeTrain": return .changeTrain
+            case "seatConfirmed": return .seatConfirmed
+            case "seatNotConfirmed": return .seatNotConfirmed
+            case "enjoyTrip": return .enjoyTrip
+            default: return nil
         }
     }
 

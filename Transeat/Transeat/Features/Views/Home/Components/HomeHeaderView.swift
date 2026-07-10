@@ -20,15 +20,17 @@ struct HomeHeaderView: View {
             }
             Spacer()
             HStack (alignment: .center, spacing: 8){
-                NavigationLink(destination: Guideline()){
+                NavigationLink(destination: GuidelineView()){
                     Image(systemName: "questionmark.circle")
                         .font(.system(size: 20))
                         .foregroundColor(Color.hexPalette.cherry500)
                 }
-                    
-                Image(systemName: "person.circle.fill")
-                    .font(.system(size: 32))
-                    .foregroundColor(Color.hexPalette.cherry500)
+                
+                NavigationLink(destination: ProfileView()) {
+                    Image(systemName: "person.circle.fill")
+                        .font(.system(size: 32))
+                        .foregroundColor(Color.hexPalette.cherry500)
+                }
             }
         }
         .padding(20)

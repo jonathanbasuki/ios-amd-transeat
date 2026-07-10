@@ -107,12 +107,36 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		58D1C5892FFCA08C0096A4F0 /* Shared */ = {
+		587A87893000799400571145 /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
 				58D1C5872FFCA0090096A4F0 /* PhoneMirrorViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		587A878A300079A000571145 /* DataStates */ = {
+			isa = PBXGroup;
+			children = (
 				58D1C8252FFDD6760096A4F0 /* AppScreen.swift */,
+			);
+			path = DataStates;
+			sourceTree = "<group>";
+		};
+		587A878B300079B400571145 /* Managers */ = {
+			isa = PBXGroup;
+			children = (
 				58D1C8262FFDD6760096A4F0 /* WatchConnectivityManager.swift */,
+			);
+			path = Managers;
+			sourceTree = "<group>";
+		};
+		58D1C5892FFCA08C0096A4F0 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				587A878B300079B400571145 /* Managers */,
+				587A878A300079A000571145 /* DataStates */,
+				587A87893000799400571145 /* ViewModels */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -379,7 +403,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = TAR2VV6ULU;
+				DEVELOPMENT_TEAM = 953242MS8N;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Transeat;
@@ -412,7 +436,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = TAR2VV6ULU;
+				DEVELOPMENT_TEAM = 953242MS8N;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Transeat;
@@ -446,7 +470,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = TAR2VV6ULU;
+				DEVELOPMENT_TEAM = 953242MS8N;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Transeat;
@@ -482,7 +506,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = TAR2VV6ULU;
+				DEVELOPMENT_TEAM = 953242MS8N;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Transeat;

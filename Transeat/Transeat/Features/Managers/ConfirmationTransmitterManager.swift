@@ -30,7 +30,7 @@ class ConfirmationTransmitterManager: NSObject, ObservableObject, CBPeripheralMa
 
     // Holds a result if send() is called before Bluetooth finishes
     // powering on, so a fast double-tap right after launch isn't lost.
-    private var pendingResult: ConfirmationResult?
+    private var pendingResult: ConfirmationResultState?
 
     override init() {
         super.init()
@@ -40,7 +40,7 @@ class ConfirmationTransmitterManager: NSObject, ObservableObject, CBPeripheralMa
     /// Call this from HomeViewModel.confirmSeated() / triggerUnconfirmDelayFlow().
     /// Safe to call before Bluetooth is ready — the result is queued and
     /// sent as soon as peripheralManagerDidUpdateState reports .poweredOn.
-    func send(_ result: ConfirmationResult) {
+    func send(_ result: ConfirmationResultState) {
         guard peripheralManager.state == .poweredOn else {
             print("[ConfirmationTransmitter] not powered on yet — queuing \(result)")
             pendingResult = result
@@ -49,7 +49,7 @@ class ConfirmationTransmitterManager: NSObject, ObservableObject, CBPeripheralMa
         transmit(result)
     }
 
-    private func transmit(_ result: ConfirmationResult) {
+    private func transmit(_ result: ConfirmationResultState) {
         let data = Data([result.wireByte])
         let delivered = peripheralManager.updateValue(
             data,

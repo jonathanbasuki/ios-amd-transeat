@@ -12,12 +12,12 @@ struct OnboardingView: View {
                 .foregroundColor(Color.hexPalette.cherry500)
 
             VStack(spacing: 12) {
-                Text("Sudahkah Mama\nvalidasi kehamilan?")
+                Text("Yuk, Verifikasi Kehamilan")
                     .font(.system(size: 26, weight: .bold))
                     .foregroundColor(.black)
                     .multilineTextAlignment(.center)
 
-                Text("Kami butuh mengonfirmasi data Mama sebelum\npakai TranSeat. Mohon isi data Mama dulu!")
+                Text("Lengkapi data Mama untuk mulai menggunakan TranSeat.")
                     .font(.system(size: 16, weight: .regular))
                     .foregroundColor(Color.hexPalette.darkgray)
                     .multilineTextAlignment(.center)
@@ -26,7 +26,7 @@ struct OnboardingView: View {
             Spacer()
 
             NavigationLink(destination: ValidatePregnancyView()) {
-                Text("Validasi Kehamilan")
+                Text("Verifikasi Kehamilan")
             }
             .buttonStyle(PrimaryButtonStyle())
         }
