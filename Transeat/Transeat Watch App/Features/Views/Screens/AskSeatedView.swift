@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct AskSeated: View {
+struct AskSeatedView: View {
     var onConfirm: () -> Void = {}
     var onNotYet: () -> Void = {}
 
@@ -17,5 +17,5 @@ struct AskSeated: View {
 }
 
 #Preview {
-    AskSeated()
+    AskSeatedView()
 }

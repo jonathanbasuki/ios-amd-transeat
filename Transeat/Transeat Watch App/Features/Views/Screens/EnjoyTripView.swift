@@ -3,10 +3,10 @@ import SwiftUI
 struct EnjoyTripView: View {
     var body: some View {
         WatchContainer {
-            MascotView(isPulsing: false)
+            MascotView(mascot: "mascot-hai", isPulsing: false)
             
-            ScreenTitleText(text: "Nikmati perjalananmu, Mama!")
-            ScreenBodyText(text: "Gunakan kami lagi untuk perjalanan lainnya, ya!")
+            ScreenTitleText(text: "Nikmati perjalanan, Mama!")
+            ScreenBodyText(text: "Pakailah kami lagi pada perjalanan Anda berikutnya.")
         }
     }
 }
