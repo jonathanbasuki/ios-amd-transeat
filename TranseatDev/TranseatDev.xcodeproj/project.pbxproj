@@ -19,9 +19,22 @@
 		587441882FF4C40600B777C9 /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = ../Configs/Release.xcconfig; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		4614C1C02FF61BAF00AB0553 /* Exceptions for "TranseatDev" folder in "TranseatDev" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 5874414F2FF4B95200B777C9 /* TranseatDev */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		587441522FF4B95200B777C9 /* TranseatDev */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				4614C1C02FF61BAF00AB0553 /* Exceptions for "TranseatDev" folder in "TranseatDev" target */,
+			);
 			path = TranseatDev;
 			sourceTree = "<group>";
 		};
@@ -271,6 +284,10 @@
 				DEVELOPMENT_TEAM = 953242MS8N;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TranseatDev/Info.plist;
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "We use Bluetooth to broadcast a signal.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "TranseatDev uses the camera to detect seat occupancy.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We use your location to detect nearby beacons.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -304,6 +321,10 @@
 				DEVELOPMENT_TEAM = 953242MS8N;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TranseatDev/Info.plist;
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "We use Bluetooth to broadcast a signal.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "TranseatDev uses the camera to detect seat occupancy.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We use your location to detect nearby beacons.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

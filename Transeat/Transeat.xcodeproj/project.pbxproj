@@ -11,6 +11,12 @@
 		5874417F2FF4BF5E00B777C9 /* Base.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 5874417E2FF4BF5E00B777C9 /* Base.xcconfig */; };
 		587441812FF4BF7F00B777C9 /* Debug.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 587441802FF4BF7F00B777C9 /* Debug.xcconfig */; };
 		587441832FF4BF9C00B777C9 /* Release.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 587441822FF4BF9C00B777C9 /* Release.xcconfig */; };
+		58D1C5882FFCA0090096A4F0 /* PhoneMirrorViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D1C5872FFCA0090096A4F0 /* PhoneMirrorViewModel.swift */; };
+		58D1C75D2FFCAF470096A4F0 /* PhoneMirrorViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D1C5872FFCA0090096A4F0 /* PhoneMirrorViewModel.swift */; };
+		58D1C8272FFDD6760096A4F0 /* AppScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D1C8252FFDD6760096A4F0 /* AppScreen.swift */; };
+		58D1C8282FFDD6760096A4F0 /* WatchConnectivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D1C8262FFDD6760096A4F0 /* WatchConnectivityManager.swift */; };
+		58D1C8292FFDD6760096A4F0 /* AppScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D1C8252FFDD6760096A4F0 /* AppScreen.swift */; };
+		58D1C82A2FFDD6760096A4F0 /* WatchConnectivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D1C8262FFDD6760096A4F0 /* WatchConnectivityManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -43,6 +49,9 @@
 		5874417E2FF4BF5E00B777C9 /* Base.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Base.xcconfig; path = ../Configs/Base.xcconfig; sourceTree = SOURCE_ROOT; };
 		587441802FF4BF7F00B777C9 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Debug.xcconfig; path = ../Configs/Debug.xcconfig; sourceTree = SOURCE_ROOT; };
 		587441822FF4BF9C00B777C9 /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = ../Configs/Release.xcconfig; sourceTree = SOURCE_ROOT; };
+		58D1C5872FFCA0090096A4F0 /* PhoneMirrorViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneMirrorViewModel.swift; sourceTree = "<group>"; };
+		58D1C8252FFDD6760096A4F0 /* AppScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppScreen.swift; sourceTree = "<group>"; };
+		58D1C8262FFDD6760096A4F0 /* WatchConnectivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchConnectivityManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -79,6 +88,7 @@
 		5874411D2FF4B82D00B777C9 = {
 			isa = PBXGroup;
 			children = (
+				58D1C5892FFCA08C0096A4F0 /* Shared */,
 				5874417E2FF4BF5E00B777C9 /* Base.xcconfig */,
 				587441802FF4BF7F00B777C9 /* Debug.xcconfig */,
 				587441822FF4BF9C00B777C9 /* Release.xcconfig */,
@@ -95,6 +105,40 @@
 				587441332FF4B82F00B777C9 /* Transeat Watch App.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		587A87893000799400571145 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				58D1C5872FFCA0090096A4F0 /* PhoneMirrorViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		587A878A300079A000571145 /* DataStates */ = {
+			isa = PBXGroup;
+			children = (
+				58D1C8252FFDD6760096A4F0 /* AppScreen.swift */,
+			);
+			path = DataStates;
+			sourceTree = "<group>";
+		};
+		587A878B300079B400571145 /* Managers */ = {
+			isa = PBXGroup;
+			children = (
+				58D1C8262FFDD6760096A4F0 /* WatchConnectivityManager.swift */,
+			);
+			path = Managers;
+			sourceTree = "<group>";
+		};
+		58D1C5892FFCA08C0096A4F0 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				587A878B300079B400571145 /* Managers */,
+				587A878A300079A000571145 /* DataStates */,
+				587A87893000799400571145 /* ViewModels */,
+			);
+			path = Shared;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -209,6 +253,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				58D1C8292FFDD6760096A4F0 /* AppScreen.swift in Sources */,
+				58D1C82A2FFDD6760096A4F0 /* WatchConnectivityManager.swift in Sources */,
+				58D1C5882FFCA0090096A4F0 /* PhoneMirrorViewModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -216,6 +263,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				58D1C8272FFDD6760096A4F0 /* AppScreen.swift in Sources */,
+				58D1C8282FFDD6760096A4F0 /* WatchConnectivityManager.swift in Sources */,
+				58D1C75D2FFCAF470096A4F0 /* PhoneMirrorViewModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -424,6 +474,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Transeat;
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Aplikasi ini membutuhkan Bluetooth untuk mendeteksi iPhone Anda.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -459,6 +510,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Transeat;
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Aplikasi ini membutuhkan Bluetooth untuk mendeteksi iPhone Anda.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
